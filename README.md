@@ -7,3 +7,4 @@ Made in Python using:
 - PyQt5 for GUI,
 - winsound for sounds during generation process,
 - time, random, numpy, sys, etc.
+Application requires json credentials file to access google spreadsheet, which I won't share due to privacy reasons.
