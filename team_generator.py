@@ -9,6 +9,7 @@ import numpy as np
 import winsound
 import sys
 
+
 from qt_material import apply_stylesheet
 #https://github.com/UN-GCPDS/qt-material#install
 #pip install qt-material
@@ -26,6 +27,8 @@ useName = False
 playersList = []
 playersLOL = []
 playersCS = []
+playersMK = []
+playersFIFA = []
 teamsLOL = 0
 teamsCS = 0
 roomsList = []
@@ -98,15 +101,34 @@ def dividePlayers(players):
                 playersCS.append(player[1])
             else:
                 playersCS.append(player[2])
+        if player[4] == "Mortal Kombat":
+            if useName:
+                playersMK.append(player[1])
+            else:
+                playersMK.append(player[2])
+        if player[4] == "FIFA":
+            if useName:
+                playersFIFA.append(player[1])
+            else:
+                playersFIFA.append(player[2])
 
 
 #remove players if there are too many, for example: reduce from 19 to 10
-def removeExcessivePlayers(players):
-    if len(players) < 10:
-        print("Impossible to form a team with ", len(players))
-        return
-    while len(players) % 10 != 0:
-        del players[-1]
+def removeExcessivePlayers(players, game):
+    if game == "LOL" or game == "CS":
+        if len(players) < 10:
+            print("Impossible to form a team with ", len(players))
+            return
+        else:
+            while len(players) % 10 != 0:
+                del players[-1]
+    elif game == "MK" or game == "FIFA":
+        if len(players) < 8:
+            print("Impossible to form bracket with ", len(players))
+            return
+        else:
+            while len(players) % 8 != 0:
+                del players[-1]
 
 
 #Find number of the previous game
@@ -145,7 +167,6 @@ def findAvailableRow(worksheet):
 
 
 def generateGame(players, teamNumbers, game):
-    #playsound('losu losu.mp3', False)
     random.shuffle(players)
     if game == "LOL":
         sheet = sheet2
@@ -166,7 +187,7 @@ def generateGame(players, teamNumbers, game):
         while j < i * 5 + 5:
             if game == "LOL":
                 roomsList[i].append(players[j])
-            else:
+            elif game == "CS":
                 roomsList[i+teamsLOL].append(players[j])
             array = np.append(array, [[players[j]]], axis=0)
             j = j + 1
@@ -185,18 +206,52 @@ def generateGame(players, teamNumbers, game):
             print(game, "game", (previousGame+1), "generated successfully")
 
 
+def generateSecondaryGame(players, game):
+    random.shuffle(players)
+    if game == "MK":
+        sheet = sheet4
+    elif game == "FIFA":
+        sheet = sheet5
+
+    row = 1
+    column = findAvailableColumn(sheet)
+
+    for i in range(0, int(len(players)/2)):
+        array = np.empty(shape=[0, 1])
+        previousGame = findPreviousGame(sheet)
+        array = np.append(array, [["GAME " + str(previousGame + 1)]], axis=0)
+        array = np.append(array, [[players[2*i]]], axis=0)
+        array = np.append(array, [[players[2*i+1]]], axis=0)
+
+        cellRange = utils.rowcol_to_a1(row, column)
+        row = row + len(array.tolist())
+        sheet.update(cellRange, array.tolist())
+        time.sleep(1)
+
+        setColor(sheet, "red", 2*i+i+2, column, 2*i+i+3, column)
+        time.sleep(1)
+
+        print(game, "game", (previousGame+1), "generated successfully")
+
+
 def prepareWorksheets():
     # clear worksheets
     spreadsheet.get_worksheet(1).clear()
     spreadsheet.get_worksheet(2).clear()
+    spreadsheet.get_worksheet(3).clear()
+    spreadsheet.get_worksheet(4).clear()
 
     # set column width
     set_column_width(sheet2, 'A:Z', 135)
     set_column_width(sheet3, 'A:Z', 135)
+    set_column_width(sheet4, 'A:Z', 135)
+    set_column_width(sheet5, 'A:Z', 135)
 
     # clear colors
     setColor(sheet2, "white", 1, 1, 40, 26)
     setColor(sheet3, "white", 1, 1, 40, 26)
+    setColor(sheet4, "white", 1, 1, 40, 26)
+    setColor(sheet5, "white", 1, 1, 40, 26)
 
     # set font size and bold
     sheet2.format('A1:Z1', {'textFormat': {'bold': True, "fontSize": 14}})  # Game
@@ -219,14 +274,32 @@ def prepareWorksheets():
     sheet3.format('A28:Z28', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
     sheet3.format('A34:Z34', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
 
+    sheet4.format('A1:Z1', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+    sheet4.format('A4:Z4', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+    sheet4.format('A7:Z7', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+    sheet4.format('A10:Z10', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+    sheet4.format('A13:Z13', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+    sheet4.format('A16:Z16', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+    sheet4.format('A19:Z19', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+    sheet4.format('A22:Z22', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+
+    sheet5.format('A1:Z1', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+    sheet5.format('A4:Z4', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+    sheet5.format('A7:Z7', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+    sheet5.format('A10:Z10', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+    sheet5.format('A13:Z13', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+    sheet5.format('A16:Z16', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+    sheet5.format('A19:Z19', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+    sheet5.format('A22:Z22', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+
     # this is the amount of previous operations
-    # time.sleep(24)
+    # time.sleep(46)
 
     print("Worksheets prepared")
 
 
 def openSpreadsheet():
-    global spreadsheet, sheet1, sheet2, sheet3
+    global spreadsheet, sheet1, sheet2, sheet3, sheet4, sheet5
     scope = ['https://www.googleapis.com/auth/spreadsheets',
              'https://www.googleapis.com/auth/drive.file',
              "https://www.googleapis.com/auth/drive"]
@@ -237,26 +310,28 @@ def openSpreadsheet():
     sheet1 = spreadsheet.get_worksheet(0)
     sheet2 = spreadsheet.get_worksheet(1)
     sheet3 = spreadsheet.get_worksheet(2)
+    sheet4 = spreadsheet.get_worksheet(3)
+    sheet5 = spreadsheet.get_worksheet(4)
 
 
 class Ui_mainWindow(object):
     def setupUi(self, mainWindow):
         mainWindow.setObjectName("mainWindow")
-        mainWindow.resize(866, 800)
+        mainWindow.resize(866, 900)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(mainWindow.sizePolicy().hasHeightForWidth())
         mainWindow.setSizePolicy(sizePolicy)
-        mainWindow.setMaximumSize(QtCore.QSize(866, 800))
-        mainWindow.setMinimumSize(QtCore.QSize(866, 800))
+        mainWindow.setMinimumSize(QtCore.QSize(866, 900))
+        mainWindow.setMaximumSize(QtCore.QSize(866, 900))
         font = QtGui.QFont()
         font.setPointSize(10)
         mainWindow.setFont(font)
         self.centralwidget = QtWidgets.QWidget(mainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.generateButton = QtWidgets.QPushButton(self.centralwidget)
-        self.generateButton.setGeometry(QtCore.QRect(320, 560, 241, 91))
+        self.generateButton.setGeometry(QtCore.QRect(320, 640, 241, 91))
         font = QtGui.QFont()
         font.setPointSize(16)
         self.generateButton.setFont(font)
@@ -268,7 +343,7 @@ class Ui_mainWindow(object):
         self.gameLabel.setFont(font)
         self.gameLabel.setObjectName("gameLabel")
         self.playersLabel = QtWidgets.QLabel(self.centralwidget)
-        self.playersLabel.setGeometry(QtCore.QRect(40, 240, 121, 31))
+        self.playersLabel.setGeometry(QtCore.QRect(20, 350, 121, 31))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.playersLabel.setFont(font)
@@ -278,24 +353,27 @@ class Ui_mainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(10)
         self.gameSpin1.setFont(font)
+        self.gameSpin1.setMaximum(10)
         self.gameSpin1.setProperty("value", 3)
         self.gameSpin1.setObjectName("gameSpin1")
         self.gameSpin2 = QtWidgets.QSpinBox(self.centralwidget)
-        self.gameSpin2.setGeometry(QtCore.QRect(400, 110, 81, 41))
+        self.gameSpin2.setGeometry(QtCore.QRect(400, 100, 81, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.gameSpin2.setFont(font)
+        self.gameSpin2.setMaximum(10)
         self.gameSpin2.setProperty("value", 3)
         self.gameSpin2.setObjectName("gameSpin2")
-        self.gameSpin3 = QtWidgets.QSpinBox(self.centralwidget)
-        self.gameSpin3.setGeometry(QtCore.QRect(400, 180, 81, 41))
+        self.gameSpin4 = QtWidgets.QSpinBox(self.centralwidget)
+        self.gameSpin4.setGeometry(QtCore.QRect(400, 220, 81, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
-        self.gameSpin3.setFont(font)
-        self.gameSpin3.setProperty("value", 1)
-        self.gameSpin3.setObjectName("gameSpin3")
+        self.gameSpin4.setFont(font)
+        self.gameSpin4.setMaximum(10)
+        self.gameSpin4.setProperty("value", 1)
+        self.gameSpin4.setObjectName("gameSpin4")
         self.clearButton = QtWidgets.QPushButton(self.centralwidget)
-        self.clearButton.setGeometry(QtCore.QRect(600, 560, 231, 91))
+        self.clearButton.setGeometry(QtCore.QRect(610, 640, 231, 91))
         font = QtGui.QFont()
         font.setPointSize(16)
         self.clearButton.setFont(font)
@@ -308,28 +386,28 @@ class Ui_mainWindow(object):
         self.gameCheck1.setChecked(True)
         self.gameCheck1.setObjectName("gameCheck1")
         self.gameCheck2 = QtWidgets.QCheckBox(self.centralwidget)
-        self.gameCheck2.setGeometry(QtCore.QRect(30, 110, 281, 41))
+        self.gameCheck2.setGeometry(QtCore.QRect(30, 100, 281, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.gameCheck2.setFont(font)
         self.gameCheck2.setChecked(True)
         self.gameCheck2.setObjectName("gameCheck2")
-        self.gameCheck3 = QtWidgets.QCheckBox(self.centralwidget)
-        self.gameCheck3.setGeometry(QtCore.QRect(30, 180, 231, 41))
+        self.gameCheck4 = QtWidgets.QCheckBox(self.centralwidget)
+        self.gameCheck4.setGeometry(QtCore.QRect(30, 220, 231, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
-        self.gameCheck3.setFont(font)
-        self.gameCheck3.setChecked(True)
-        self.gameCheck3.setObjectName("gameCheck3")
+        self.gameCheck4.setFont(font)
+        self.gameCheck4.setChecked(True)
+        self.gameCheck4.setObjectName("gameCheck4")
         self.playersCheck1 = QtWidgets.QCheckBox(self.centralwidget)
-        self.playersCheck1.setGeometry(QtCore.QRect(40, 350, 221, 31))
+        self.playersCheck1.setGeometry(QtCore.QRect(30, 450, 221, 31))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.playersCheck1.setFont(font)
         self.playersCheck1.setChecked(True)
         self.playersCheck1.setObjectName("playersCheck1")
         self.playersCheck2 = QtWidgets.QCheckBox(self.centralwidget)
-        self.playersCheck2.setGeometry(QtCore.QRect(40, 410, 241, 31))
+        self.playersCheck2.setGeometry(QtCore.QRect(30, 500, 241, 31))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.playersCheck2.setFont(font)
@@ -343,7 +421,7 @@ class Ui_mainWindow(object):
         self.soundCheck.setChecked(True)
         self.soundCheck.setObjectName("soundCheck")
         self.gamePlayers1 = QtWidgets.QLabel(self.centralwidget)
-        self.gamePlayers1.setGeometry(QtCore.QRect(510, 40, 121, 41))
+        self.gamePlayers1.setGeometry(QtCore.QRect(500, 40, 121, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.gamePlayers1.setFont(font)
@@ -355,68 +433,123 @@ class Ui_mainWindow(object):
         self.label1.setFont(font)
         self.label1.setObjectName("label1")
         self.gamePlayers2 = QtWidgets.QLabel(self.centralwidget)
-        self.gamePlayers2.setGeometry(QtCore.QRect(510, 110, 121, 41))
+        self.gamePlayers2.setGeometry(QtCore.QRect(500, 100, 121, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.gamePlayers2.setFont(font)
         self.gamePlayers2.setObjectName("gamePlayers2")
-        self.gamePlayers3 = QtWidgets.QLabel(self.centralwidget)
-        self.gamePlayers3.setGeometry(QtCore.QRect(510, 180, 121, 41))
+        self.gamePlayers4 = QtWidgets.QLabel(self.centralwidget)
+        self.gamePlayers4.setGeometry(QtCore.QRect(500, 220, 121, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
-        self.gamePlayers3.setFont(font)
-        self.gamePlayers3.setObjectName("gamePlayers3")
+        self.gamePlayers4.setFont(font)
+        self.gamePlayers4.setObjectName("gamePlayers4")
         self.label2 = QtWidgets.QLabel(self.centralwidget)
-        self.label2.setGeometry(QtCore.QRect(320, 110, 71, 41))
+        self.label2.setGeometry(QtCore.QRect(320, 100, 71, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.label2.setFont(font)
         self.label2.setObjectName("label2")
-        self.label3 = QtWidgets.QLabel(self.centralwidget)
-        self.label3.setGeometry(QtCore.QRect(320, 180, 71, 41))
+        self.label4 = QtWidgets.QLabel(self.centralwidget)
+        self.label4.setGeometry(QtCore.QRect(320, 220, 71, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
-        self.label3.setFont(font)
-        self.label3.setObjectName("label3")
+        self.label4.setFont(font)
+        self.label4.setObjectName("label4")
         self.loadButton = QtWidgets.QPushButton(self.centralwidget)
-        self.loadButton.setGeometry(QtCore.QRect(40, 560, 241, 91))
+        self.loadButton.setGeometry(QtCore.QRect(30, 640, 241, 91))
         font = QtGui.QFont()
         font.setPointSize(16)
         self.loadButton.setFont(font)
         self.loadButton.setObjectName("loadButton")
         self.playersRadio1 = QtWidgets.QRadioButton(self.centralwidget)
-        self.playersRadio1.setGeometry(QtCore.QRect(40, 290, 141, 41))
+        self.playersRadio1.setGeometry(QtCore.QRect(30, 400, 141, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.playersRadio1.setFont(font)
         self.playersRadio1.setChecked(False)
         self.playersRadio1.setObjectName("playersRadio1")
         self.playersRadio2 = QtWidgets.QRadioButton(self.centralwidget)
-        self.playersRadio2.setGeometry(QtCore.QRect(190, 290, 181, 41))
+        self.playersRadio2.setGeometry(QtCore.QRect(180, 400, 181, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.playersRadio2.setFont(font)
         self.playersRadio2.setChecked(True)
         self.playersRadio2.setObjectName("playersRadio2")
         self.roomsCheck = QtWidgets.QCheckBox(self.centralwidget)
-        self.roomsCheck.setGeometry(QtCore.QRect(40, 480, 241, 31))
+        self.roomsCheck.setGeometry(QtCore.QRect(30, 550, 241, 31))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.roomsCheck.setFont(font)
         self.roomsCheck.setChecked(True)
         self.roomsCheck.setObjectName("roomsCheck")
         self.nameEdit = QtWidgets.QLineEdit(self.centralwidget)
-        self.nameEdit.setGeometry(QtCore.QRect(290, 470, 161, 51))
+        self.nameEdit.setGeometry(QtCore.QRect(280, 540, 161, 51))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.nameEdit.setFont(font)
         self.nameEdit.setObjectName("nameEdit")
         self.statusLabel = QtWidgets.QLabel(self.centralwidget)
-        self.statusLabel.setGeometry(QtCore.QRect(260, 670, 591, 61))
+        self.statusLabel.setGeometry(QtCore.QRect(250, 750, 591, 61))
         font = QtGui.QFont()
         font.setPointSize(16)
         self.statusLabel.setFont(font)
         self.statusLabel.setObjectName("statusLabel")
+        self.gameCheck3 = QtWidgets.QCheckBox(self.centralwidget)
+        self.gameCheck3.setEnabled(True)
+        self.gameCheck3.setGeometry(QtCore.QRect(30, 160, 231, 41))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.gameCheck3.setFont(font)
+        self.gameCheck3.setChecked(False)
+        self.gameCheck3.setObjectName("gameCheck3")
+        self.label3 = QtWidgets.QLabel(self.centralwidget)
+        self.label3.setGeometry(QtCore.QRect(320, 160, 71, 41))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label3.setFont(font)
+        self.label3.setObjectName("label3")
+        self.gameSpin3 = QtWidgets.QSpinBox(self.centralwidget)
+        self.gameSpin3.setGeometry(QtCore.QRect(400, 160, 81, 41))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.gameSpin3.setFont(font)
+        self.gameSpin3.setMaximum(10)
+        self.gameSpin3.setProperty("value", 0)
+        self.gameSpin3.setObjectName("gameSpin3")
+        self.gamePlayers3 = QtWidgets.QLabel(self.centralwidget)
+        self.gamePlayers3.setGeometry(QtCore.QRect(500, 160, 121, 41))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.gamePlayers3.setFont(font)
+        self.gamePlayers3.setObjectName("gamePlayers3")
+        self.gameCheck5 = QtWidgets.QCheckBox(self.centralwidget)
+        self.gameCheck5.setGeometry(QtCore.QRect(30, 280, 231, 41))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.gameCheck5.setFont(font)
+        self.gameCheck5.setChecked(True)
+        self.gameCheck5.setObjectName("gameCheck5")
+        self.label5 = QtWidgets.QLabel(self.centralwidget)
+        self.label5.setGeometry(QtCore.QRect(320, 280, 71, 41))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label5.setFont(font)
+        self.label5.setObjectName("label5")
+        self.gameSpin5 = QtWidgets.QSpinBox(self.centralwidget)
+        self.gameSpin5.setGeometry(QtCore.QRect(400, 280, 81, 41))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.gameSpin5.setFont(font)
+        self.gameSpin5.setMaximum(10)
+        self.gameSpin5.setProperty("value", 1)
+        self.gameSpin5.setObjectName("gameSpin5")
+        self.gamePlayers5 = QtWidgets.QLabel(self.centralwidget)
+        self.gamePlayers5.setGeometry(QtCore.QRect(500, 280, 121, 41))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.gamePlayers5.setFont(font)
+        self.gamePlayers5.setObjectName("gamePlayers5")
         mainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(mainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 866, 29))
@@ -434,7 +567,7 @@ class Ui_mainWindow(object):
         self.clearButton.clicked.connect(self.clear)
 
     def loadPlayers(self):
-        global useName, playersList, playersLOL, playersCS, teamsLOL, teamsCS, roomsList
+        global useName, playersList, playersLOL, playersCS, playersMK, playersFIFA, teamsLOL, teamsCS, roomsList
 
         self.statusLabel.setText("Status: Loading players...")
         self.statusLabel.adjustSize()
@@ -447,7 +580,8 @@ class Ui_mainWindow(object):
         # flag to use either names or nicknames
         useName = self.playersRadio2.isChecked()
 
-        playersList = sheet1.get_all_values()[1:]  # 0 - timestamp  1 - name  2 - nickname  3 - game
+        # 0 - timestamp  1 - name  2 - nickname  3 - main game  4 - secondary game
+        playersList = sheet1.get_all_values()[1:]
         time.sleep(1)
 
         print("Names loaded")
@@ -459,19 +593,27 @@ class Ui_mainWindow(object):
 
         playersLOL = []
         playersCS = []
+        playersMK = []
+        playersFIFA = []
         dividePlayers(playersList)
 
         #print("Players for LoL: ", len(playersLOL))
         #print("Players for CS: ", len(playersCS))
 
-        removeExcessivePlayers(playersLOL)
-        removeExcessivePlayers(playersCS)
+        removeExcessivePlayers(playersLOL, "LOL")
+        removeExcessivePlayers(playersCS, "CS")
+        removeExcessivePlayers(playersMK, "MK")
+        removeExcessivePlayers(playersFIFA, "FIFA")
 
         print("Players for LoL after cuts: ", len(playersLOL))
         print("Players for CS after cuts: ", len(playersCS))
+        print("Players for Mortal Kombat after cuts: ", len(playersMK))
+        print("Players for FIFA after cuts: ", len(playersFIFA))
 
         self.gamePlayers1.setText("Players: " + str(len(playersLOL)))
         self.gamePlayers2.setText("Players: " + str(len(playersCS)))
+        self.gamePlayers4.setText("Players: " + str(len(playersMK)))
+        self.gamePlayers5.setText("Players: " + str(len(playersFIFA)))
 
         teamsLOL = int(len(playersLOL) / 5)
         teamsCS = int(len(playersCS) / 5)
@@ -507,7 +649,8 @@ class Ui_mainWindow(object):
         self.statusLabel.adjustSize()
         app.processEvents()
 
-        if self.gameCheck1.isChecked():
+        #LOL
+        if self.gameCheck1.isChecked() and len(playersLOL) >= 10:
             for i in range(self.gameSpin1.value()):
                 generateGame(playersLOL, teamsLOL, "LOL")
 
@@ -516,9 +659,30 @@ class Ui_mainWindow(object):
             winsound.PlaySound(None, winsound.SND_PURGE)
             winsound.PlaySound('sounds/losu losu losu.wav', winsound.SND_ASYNC)
 
-        if self.gameCheck2.isChecked():
+        #CS
+        if self.gameCheck2.isChecked() and len(playersCS) >= 10:
             for i in range(self.gameSpin2.value()):
                 generateGame(playersCS, teamsCS, "CS")
+
+        # play sound
+        if self.soundCheck.isChecked():
+            winsound.PlaySound(None, winsound.SND_PURGE)
+            winsound.PlaySound('sounds/losu losu losu.wav', winsound.SND_ASYNC)
+
+        #Mortal Kombat
+        if self.gameCheck4.isChecked() and len(playersMK) >= 8:
+            for i in range(self.gameSpin4.value()):
+                generateSecondaryGame(playersMK, "MK")
+
+        # play sound
+        if self.soundCheck.isChecked():
+            winsound.PlaySound(None, winsound.SND_PURGE)
+            winsound.PlaySound('sounds/losu losu losu.wav', winsound.SND_ASYNC)
+
+        #FIFA
+        if self.gameCheck5.isChecked() and len(playersFIFA) >= 8:
+            for i in range(self.gameSpin5.value()):
+                generateSecondaryGame(playersFIFA, "FIFA")
 
         self.statusLabel.setText("Status: Generating completed")
         self.statusLabel.adjustSize()
@@ -596,22 +760,28 @@ class Ui_mainWindow(object):
         self.clearButton.setText(_translate("mainWindow", "Clear"))
         self.gameCheck1.setText(_translate("mainWindow", "League of Legends"))
         self.gameCheck2.setText(_translate("mainWindow", "Counter-Strike: Global Offensive"))
-        self.gameCheck3.setText(_translate("mainWindow", "Mortal Kombat"))
+        self.gameCheck4.setText(_translate("mainWindow", "Mortal Kombat"))
         self.playersCheck1.setText(_translate("mainWindow", "Remove empty players"))
         self.playersCheck2.setText(_translate("mainWindow", "Remove duplicate players"))
         self.soundCheck.setText(_translate("mainWindow", "Sounds"))
         self.gamePlayers1.setText(_translate("mainWindow", "Players: "))
         self.label1.setText(_translate("mainWindow", "Games: "))
         self.gamePlayers2.setText(_translate("mainWindow", "Players: "))
-        self.gamePlayers3.setText(_translate("mainWindow", "Players: "))
+        self.gamePlayers4.setText(_translate("mainWindow", "Players: "))
         self.label2.setText(_translate("mainWindow", "Games: "))
-        self.label3.setText(_translate("mainWindow", "Games: "))
+        self.label4.setText(_translate("mainWindow", "Games: "))
         self.loadButton.setText(_translate("mainWindow", "Load players"))
         self.playersRadio1.setText(_translate("mainWindow", "Nickname"))
         self.playersRadio2.setText(_translate("mainWindow", "Full name"))
         self.roomsCheck.setText(_translate("mainWindow", "Generate rooms docx file:"))
         self.nameEdit.setText(_translate("mainWindow", "rooms"))
         self.statusLabel.setText(_translate("mainWindow", "Status: Waiting..."))
+        self.gameCheck3.setText(_translate("mainWindow", "Valorant"))
+        self.label3.setText(_translate("mainWindow", "Games: "))
+        self.gamePlayers3.setText(_translate("mainWindow", "Players: "))
+        self.gameCheck5.setText(_translate("mainWindow", "Fifa"))
+        self.label5.setText(_translate("mainWindow", "Games: "))
+        self.gamePlayers5.setText(_translate("mainWindow", "Players: "))
 
 
 if __name__ == "__main__":
