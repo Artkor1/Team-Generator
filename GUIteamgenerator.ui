@@ -42,13 +42,13 @@
      <rect>
       <x>320</x>
       <y>640</y>
-      <width>241</width>
-      <height>91</height>
+      <width>231</width>
+      <height>71</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>16</pointsize>
+      <pointsize>14</pointsize>
      </font>
     </property>
     <property name="text">
@@ -158,18 +158,18 @@
     <property name="geometry">
      <rect>
       <x>610</x>
-      <y>640</y>
-      <width>231</width>
-      <height>91</height>
+      <y>690</y>
+      <width>221</width>
+      <height>71</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>16</pointsize>
+      <pointsize>14</pointsize>
      </font>
     </property>
     <property name="text">
-     <string>Clear</string>
+     <string>Clear sheets</string>
     </property>
    </widget>
    <widget class="QCheckBox" name="gameCheck1">
@@ -411,13 +411,13 @@
      <rect>
       <x>30</x>
       <y>640</y>
-      <width>241</width>
-      <height>91</height>
+      <width>231</width>
+      <height>71</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>16</pointsize>
+      <pointsize>14</pointsize>
      </font>
     </property>
     <property name="text">
@@ -509,14 +509,14 @@
     <property name="geometry">
      <rect>
       <x>250</x>
-      <y>750</y>
+      <y>770</y>
       <width>591</width>
       <height>61</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>16</pointsize>
+      <pointsize>14</pointsize>
      </font>
     </property>
     <property name="text">
@@ -680,6 +680,24 @@
     </property>
     <property name="text">
      <string>Players: </string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="prepareButton">
+    <property name="geometry">
+     <rect>
+      <x>610</x>
+      <y>590</y>
+      <width>221</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Prepare sheets</string>
     </property>
    </widget>
   </widget>

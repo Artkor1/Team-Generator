@@ -27,10 +27,12 @@ useName = False
 playersList = []
 playersLOL = []
 playersCS = []
+playersValorant = []
 playersMK = []
 playersFIFA = []
 teamsLOL = 0
 teamsCS = 0
+teamsValorant = 0
 roomsList = []
 
 
@@ -67,7 +69,7 @@ def setColor(worksheet, color, rowStart, columnStart, rowEnd, columnEnd):
 def removeEmpty(players):
     i = 0
     while i < len(players):
-        for j in range(4):
+        for j in range(3):
             if players[i][j] == "":
                 del players[i]
                 i = i - 1
@@ -96,17 +98,22 @@ def dividePlayers(players):
                 playersLOL.append(player[1])
             else:
                 playersLOL.append(player[2])
-        if player[3] == "CS:GO":
+        elif player[3] == "CS:GO":
             if useName:
                 playersCS.append(player[1])
             else:
                 playersCS.append(player[2])
+        elif player[3] == "Valorant":
+            if useName:
+                playersValorant.append(player[1])
+            else:
+                playersValorant.append(players[2])
         if player[4] == "Mortal Kombat":
             if useName:
                 playersMK.append(player[1])
             else:
                 playersMK.append(player[2])
-        if player[4] == "FIFA":
+        elif player[4] == "FIFA":
             if useName:
                 playersFIFA.append(player[1])
             else:
@@ -115,7 +122,7 @@ def dividePlayers(players):
 
 #remove players if there are too many, for example: reduce from 19 to 10
 def removeExcessivePlayers(players, game):
-    if game == "LOL" or game == "CS":
+    if game == "LOL" or game == "CS" or game == "Valorant":
         if len(players) < 10:
             print("Impossible to form a team with ", len(players))
             return
@@ -172,6 +179,8 @@ def generateGame(players, teamNumbers, game):
         sheet = sheet2
     elif game == "CS":
         sheet = sheet3
+    elif game == "Valorant":
+        sheet = sheet4
 
     row = 1
     column = findAvailableColumn(sheet)
@@ -189,6 +198,8 @@ def generateGame(players, teamNumbers, game):
                 roomsList[i].append(players[j])
             elif game == "CS":
                 roomsList[i+teamsLOL].append(players[j])
+            elif game == "Valorant":
+                roomsList[i+teamsLOL+teamsCS].append(players[j])
             array = np.append(array, [[players[j]]], axis=0)
             j = j + 1
 
@@ -209,9 +220,9 @@ def generateGame(players, teamNumbers, game):
 def generateSecondaryGame(players, game):
     random.shuffle(players)
     if game == "MK":
-        sheet = sheet4
-    elif game == "FIFA":
         sheet = sheet5
+    elif game == "FIFA":
+        sheet = sheet6
 
     row = 1
     column = findAvailableColumn(sheet)
@@ -234,72 +245,8 @@ def generateSecondaryGame(players, game):
         print(game, "game", (previousGame+1), "generated successfully")
 
 
-def prepareWorksheets():
-    # clear worksheets
-    spreadsheet.get_worksheet(1).clear()
-    spreadsheet.get_worksheet(2).clear()
-    spreadsheet.get_worksheet(3).clear()
-    spreadsheet.get_worksheet(4).clear()
-
-    # set column width
-    set_column_width(sheet2, 'A:Z', 135)
-    set_column_width(sheet3, 'A:Z', 135)
-    set_column_width(sheet4, 'A:Z', 135)
-    set_column_width(sheet5, 'A:Z', 135)
-
-    # clear colors
-    setColor(sheet2, "white", 1, 1, 40, 26)
-    setColor(sheet3, "white", 1, 1, 40, 26)
-    setColor(sheet4, "white", 1, 1, 40, 26)
-    setColor(sheet5, "white", 1, 1, 40, 26)
-
-    # set font size and bold
-    sheet2.format('A1:Z1', {'textFormat': {'bold': True, "fontSize": 14}})  # Game
-    sheet2.format('A2:Z2', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
-    sheet2.format('A8:Z8', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
-    sheet2.format('A14:Z14', {'textFormat': {'bold': True, "fontSize": 14}})  # Game
-    sheet2.format('A15:Z15', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
-    sheet2.format('A21:Z21', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
-    sheet2.format('A27:Z27', {'textFormat': {'bold': True, "fontSize": 14}})  # Game
-    sheet2.format('A28:Z28', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
-    sheet2.format('A34:Z34', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
-
-    sheet3.format('A1:Z1', {'textFormat': {'bold': True, "fontSize": 14}})  # Game
-    sheet3.format('A2:Z2', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
-    sheet3.format('A8:Z8', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
-    sheet3.format('A14:Z14', {'textFormat': {'bold': True, "fontSize": 14}})  # Game
-    sheet3.format('A15:Z15', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
-    sheet3.format('A21:Z21', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
-    sheet3.format('A27:Z27', {'textFormat': {'bold': True, "fontSize": 14}})  # Game
-    sheet3.format('A28:Z28', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
-    sheet3.format('A34:Z34', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
-
-    sheet4.format('A1:Z1', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
-    sheet4.format('A4:Z4', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
-    sheet4.format('A7:Z7', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
-    sheet4.format('A10:Z10', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
-    sheet4.format('A13:Z13', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
-    sheet4.format('A16:Z16', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
-    sheet4.format('A19:Z19', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
-    sheet4.format('A22:Z22', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
-
-    sheet5.format('A1:Z1', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
-    sheet5.format('A4:Z4', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
-    sheet5.format('A7:Z7', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
-    sheet5.format('A10:Z10', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
-    sheet5.format('A13:Z13', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
-    sheet5.format('A16:Z16', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
-    sheet5.format('A19:Z19', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
-    sheet5.format('A22:Z22', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
-
-    # this is the amount of previous operations
-    # time.sleep(46)
-
-    print("Worksheets prepared")
-
-
 def openSpreadsheet():
-    global spreadsheet, sheet1, sheet2, sheet3, sheet4, sheet5
+    global spreadsheet, sheet1, sheet2, sheet3, sheet4, sheet5, sheet6
     scope = ['https://www.googleapis.com/auth/spreadsheets',
              'https://www.googleapis.com/auth/drive.file',
              "https://www.googleapis.com/auth/drive"]
@@ -312,6 +259,7 @@ def openSpreadsheet():
     sheet3 = spreadsheet.get_worksheet(2)
     sheet4 = spreadsheet.get_worksheet(3)
     sheet5 = spreadsheet.get_worksheet(4)
+    sheet6 = spreadsheet.get_worksheet(5)
 
 
 class Ui_mainWindow(object):
@@ -331,9 +279,9 @@ class Ui_mainWindow(object):
         self.centralwidget = QtWidgets.QWidget(mainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.generateButton = QtWidgets.QPushButton(self.centralwidget)
-        self.generateButton.setGeometry(QtCore.QRect(320, 640, 241, 91))
+        self.generateButton.setGeometry(QtCore.QRect(320, 640, 231, 71))
         font = QtGui.QFont()
-        font.setPointSize(16)
+        font.setPointSize(14)
         self.generateButton.setFont(font)
         self.generateButton.setObjectName("generateButton")
         self.gameLabel = QtWidgets.QLabel(self.centralwidget)
@@ -373,9 +321,9 @@ class Ui_mainWindow(object):
         self.gameSpin4.setProperty("value", 1)
         self.gameSpin4.setObjectName("gameSpin4")
         self.clearButton = QtWidgets.QPushButton(self.centralwidget)
-        self.clearButton.setGeometry(QtCore.QRect(610, 640, 231, 91))
+        self.clearButton.setGeometry(QtCore.QRect(610, 690, 221, 71))
         font = QtGui.QFont()
-        font.setPointSize(16)
+        font.setPointSize(14)
         self.clearButton.setFont(font)
         self.clearButton.setObjectName("clearButton")
         self.gameCheck1 = QtWidgets.QCheckBox(self.centralwidget)
@@ -457,9 +405,9 @@ class Ui_mainWindow(object):
         self.label4.setFont(font)
         self.label4.setObjectName("label4")
         self.loadButton = QtWidgets.QPushButton(self.centralwidget)
-        self.loadButton.setGeometry(QtCore.QRect(30, 640, 241, 91))
+        self.loadButton.setGeometry(QtCore.QRect(30, 640, 231, 71))
         font = QtGui.QFont()
-        font.setPointSize(16)
+        font.setPointSize(14)
         self.loadButton.setFont(font)
         self.loadButton.setObjectName("loadButton")
         self.playersRadio1 = QtWidgets.QRadioButton(self.centralwidget)
@@ -490,9 +438,9 @@ class Ui_mainWindow(object):
         self.nameEdit.setFont(font)
         self.nameEdit.setObjectName("nameEdit")
         self.statusLabel = QtWidgets.QLabel(self.centralwidget)
-        self.statusLabel.setGeometry(QtCore.QRect(250, 750, 591, 61))
+        self.statusLabel.setGeometry(QtCore.QRect(250, 770, 591, 61))
         font = QtGui.QFont()
-        font.setPointSize(16)
+        font.setPointSize(14)
         self.statusLabel.setFont(font)
         self.statusLabel.setObjectName("statusLabel")
         self.gameCheck3 = QtWidgets.QCheckBox(self.centralwidget)
@@ -550,6 +498,12 @@ class Ui_mainWindow(object):
         font.setPointSize(10)
         self.gamePlayers5.setFont(font)
         self.gamePlayers5.setObjectName("gamePlayers5")
+        self.prepareButton = QtWidgets.QPushButton(self.centralwidget)
+        self.prepareButton.setGeometry(QtCore.QRect(610, 590, 221, 71))
+        font = QtGui.QFont()
+        font.setPointSize(14)
+        self.prepareButton.setFont(font)
+        self.prepareButton.setObjectName("prepareButton")
         mainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(mainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 866, 29))
@@ -564,10 +518,12 @@ class Ui_mainWindow(object):
 
         self.loadButton.clicked.connect(self.loadPlayers)
         self.generateButton.clicked.connect(self.generate)
-        self.clearButton.clicked.connect(self.clear)
+        self.clearButton.clicked.connect(self.clearWorksheets)
+        self.prepareButton.clicked.connect(self.prepareWorksheets)
 
     def loadPlayers(self):
-        global useName, playersList, playersLOL, playersCS, playersMK, playersFIFA, teamsLOL, teamsCS, roomsList
+        global useName, playersList, playersLOL, playersCS, playersValorant, playersMK, playersFIFA,\
+            teamsLOL, teamsCS, teamsValorant, roomsList
 
         self.statusLabel.setText("Status: Loading players...")
         self.statusLabel.adjustSize()
@@ -593,6 +549,7 @@ class Ui_mainWindow(object):
 
         playersLOL = []
         playersCS = []
+        playersValorant = []
         playersMK = []
         playersFIFA = []
         dividePlayers(playersList)
@@ -602,27 +559,33 @@ class Ui_mainWindow(object):
 
         removeExcessivePlayers(playersLOL, "LOL")
         removeExcessivePlayers(playersCS, "CS")
+        removeExcessivePlayers(playersCS, "Valorant")
         removeExcessivePlayers(playersMK, "MK")
         removeExcessivePlayers(playersFIFA, "FIFA")
 
         print("Players for LoL after cuts: ", len(playersLOL))
         print("Players for CS after cuts: ", len(playersCS))
+        print("Players for Valorant after cuts: ", len(playersValorant))
         print("Players for Mortal Kombat after cuts: ", len(playersMK))
         print("Players for FIFA after cuts: ", len(playersFIFA))
 
         self.gamePlayers1.setText("Players: " + str(len(playersLOL)))
         self.gamePlayers2.setText("Players: " + str(len(playersCS)))
+        self.gamePlayers3.setText("Players: " + str(len(playersValorant)))
         self.gamePlayers4.setText("Players: " + str(len(playersMK)))
         self.gamePlayers5.setText("Players: " + str(len(playersFIFA)))
 
         teamsLOL = int(len(playersLOL) / 5)
         teamsCS = int(len(playersCS) / 5)
+        teamsValorant = int(len(playersValorant) / 5)
 
         # define rooms
         roomsList = []
         for i in range(0, teamsLOL):
             roomsList.append([])
         for i in range(0, teamsCS):
+            roomsList.append([])
+        for i in range(0, teamsValorant):
             roomsList.append([])
 
         time.sleep(2)
@@ -638,16 +601,16 @@ class Ui_mainWindow(object):
     def generate(self):
 
         #just to make sure
-        self.clear()
+        self.clearWorksheets()
         self.loadPlayers()
-
-        # play sound
-        if self.soundCheck.isChecked():
-            winsound.PlaySound('sounds/losu losu losu.wav', winsound.SND_ASYNC)
 
         self.statusLabel.setText("Status: Generating games...")
         self.statusLabel.adjustSize()
         app.processEvents()
+
+        # play sound
+        if self.soundCheck.isChecked():
+            winsound.PlaySound('sounds/losu losu losu.wav', winsound.SND_ASYNC)
 
         #LOL
         if self.gameCheck1.isChecked() and len(playersLOL) >= 10:
@@ -663,6 +626,16 @@ class Ui_mainWindow(object):
         if self.gameCheck2.isChecked() and len(playersCS) >= 10:
             for i in range(self.gameSpin2.value()):
                 generateGame(playersCS, teamsCS, "CS")
+
+        # play sound
+        if self.soundCheck.isChecked():
+            winsound.PlaySound(None, winsound.SND_PURGE)
+            winsound.PlaySound('sounds/losu losu losu.wav', winsound.SND_ASYNC)
+
+        # CS
+        if self.gameCheck3.isChecked() and len(playersValorant) >= 10:
+            for i in range(self.gameSpin3.value()):
+                generateGame(playersValorant, teamsValorant, "Valorant")
 
         # play sound
         if self.soundCheck.isChecked():
@@ -700,12 +673,110 @@ class Ui_mainWindow(object):
 
         print("Finished successfully")
 
-    def clear(self):
+    def prepareWorksheets(self):
+        self.statusLabel.setText("Status: Preparing worksheets...")
+        self.statusLabel.adjustSize()
+        app.processEvents()
+
+        # clear worksheets
+        spreadsheet.get_worksheet(1).clear()
+        spreadsheet.get_worksheet(2).clear()
+        spreadsheet.get_worksheet(3).clear()
+        spreadsheet.get_worksheet(4).clear()
+        spreadsheet.get_worksheet(5).clear()
+
+        # set column width
+        set_column_width(sheet2, 'A:Z', 135)
+        set_column_width(sheet3, 'A:Z', 135)
+        set_column_width(sheet4, 'A:Z', 135)
+        set_column_width(sheet5, 'A:Z', 135)
+        set_column_width(sheet6, 'A:Z', 135)
+
+        # clear colors
+        setColor(sheet2, "white", 1, 1, 40, 26)
+        setColor(sheet3, "white", 1, 1, 40, 26)
+        setColor(sheet4, "white", 1, 1, 40, 26)
+        setColor(sheet5, "white", 1, 1, 40, 26)
+        setColor(sheet6, "white", 1, 1, 40, 26)
+
+        # set font size and bold
+        sheet2.format('A1:Z1', {'textFormat': {'bold': True, "fontSize": 14}})  # Game
+        sheet2.format('A2:Z2', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+        sheet2.format('A8:Z8', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+        sheet2.format('A14:Z14', {'textFormat': {'bold': True, "fontSize": 14}})  # Game
+        sheet2.format('A15:Z15', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+        sheet2.format('A21:Z21', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+        sheet2.format('A27:Z27', {'textFormat': {'bold': True, "fontSize": 14}})  # Game
+        sheet2.format('A28:Z28', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+        sheet2.format('A34:Z34', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+
+        sheet3.format('A1:Z1', {'textFormat': {'bold': True, "fontSize": 14}})  # Game
+        sheet3.format('A2:Z2', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+        sheet3.format('A8:Z8', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+        sheet3.format('A14:Z14', {'textFormat': {'bold': True, "fontSize": 14}})  # Game
+        sheet3.format('A15:Z15', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+        sheet3.format('A21:Z21', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+        sheet3.format('A27:Z27', {'textFormat': {'bold': True, "fontSize": 14}})  # Game
+        sheet3.format('A28:Z28', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+        sheet3.format('A34:Z34', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+
+        sheet4.format('A1:Z1', {'textFormat': {'bold': True, "fontSize": 14}})  # Game
+        sheet4.format('A2:Z2', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+        sheet4.format('A8:Z8', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+        sheet4.format('A14:Z14', {'textFormat': {'bold': True, "fontSize": 14}})  # Game
+        sheet4.format('A15:Z15', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+        sheet4.format('A21:Z21', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+        sheet4.format('A27:Z27', {'textFormat': {'bold': True, "fontSize": 14}})  # Game
+        sheet4.format('A28:Z28', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+        sheet4.format('A34:Z34', {'textFormat': {'bold': True, "fontSize": 12}})  # Team
+
+        sheet5.format('A1:Z1', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+        sheet5.format('A4:Z4', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+        sheet5.format('A7:Z7', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+        sheet5.format('A10:Z10', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+        sheet5.format('A13:Z13', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+        sheet5.format('A16:Z16', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+        sheet5.format('A19:Z19', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+        sheet5.format('A22:Z22', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+
+        sheet6.format('A1:Z1', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+        sheet6.format('A4:Z4', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+        sheet6.format('A7:Z7', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+        sheet6.format('A10:Z10', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+        sheet6.format('A13:Z13', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+        sheet6.format('A16:Z16', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+        sheet6.format('A19:Z19', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+        sheet6.format('A22:Z22', {'textFormat': {'bold': True, "fontSize": 12}})  # Game
+
+        # this is the amount of previous operations
+        time.sleep(58)
+
+        print("Worksheets prepared")
+        self.statusLabel.setText("Status: Worksheets prepared")
+        self.statusLabel.adjustSize()
+        app.processEvents()
+
+    def clearWorksheets(self):
         self.statusLabel.setText("Status: Clearing worksheets...")
         self.statusLabel.adjustSize()
         app.processEvents()
 
-        prepareWorksheets()
+        # clear worksheets
+        spreadsheet.get_worksheet(1).clear()
+        spreadsheet.get_worksheet(2).clear()
+        spreadsheet.get_worksheet(3).clear()
+        spreadsheet.get_worksheet(4).clear()
+        spreadsheet.get_worksheet(5).clear()
+
+        # clear colors
+        setColor(sheet2, "white", 1, 1, 40, 26)
+        setColor(sheet3, "white", 1, 1, 40, 26)
+        setColor(sheet4, "white", 1, 1, 40, 26)
+        setColor(sheet5, "white", 1, 1, 40, 26)
+        setColor(sheet6, "white", 1, 1, 40, 26)
+
+        # this is the amount of previous operations
+        #time.sleep(10)
 
         self.statusLabel.setText("Status: Worksheets cleared")
         self.statusLabel.adjustSize()
@@ -718,8 +789,10 @@ class Ui_mainWindow(object):
             heading = document.add_heading('Room' + (str(i + 1)))
             if i < teamsLOL:
                 heading.add_run(' (LOL)')
-            else:
+            elif i < teamsLOL + teamsCS:
                 heading.add_run(' (CS)')
+            else:
+                heading.add_run(' (Valorant)')
             for j in range(0, len(rooms[i])):
                 if j % 5 == 0:
                     paragraph = document.add_paragraph('Game ' + str(int(j / 5 + 1)) + ':  ')
@@ -739,8 +812,10 @@ class Ui_mainWindow(object):
 
             if i < teamsLOL:
                 f.write(" (LOL)")
-            else:
+            elif i < teamsLOL + teamsCS:
                 f.write("(CS)")
+            else:
+                f.write("(Valorant)")
 
             for j in range(0, len(rooms[i])):
                 if j % 5 == 0:
@@ -757,7 +832,7 @@ class Ui_mainWindow(object):
         self.generateButton.setText(_translate("mainWindow", "Generate"))
         self.gameLabel.setText(_translate("mainWindow", "Game Options"))
         self.playersLabel.setText(_translate("mainWindow", "Player options"))
-        self.clearButton.setText(_translate("mainWindow", "Clear"))
+        self.clearButton.setText(_translate("mainWindow", "Clear sheets"))
         self.gameCheck1.setText(_translate("mainWindow", "League of Legends"))
         self.gameCheck2.setText(_translate("mainWindow", "Counter-Strike: Global Offensive"))
         self.gameCheck4.setText(_translate("mainWindow", "Mortal Kombat"))
@@ -782,6 +857,7 @@ class Ui_mainWindow(object):
         self.gameCheck5.setText(_translate("mainWindow", "Fifa"))
         self.label5.setText(_translate("mainWindow", "Games: "))
         self.gamePlayers5.setText(_translate("mainWindow", "Players: "))
+        self.prepareButton.setText(_translate("mainWindow", "Prepare sheets"))
 
 
 if __name__ == "__main__":
