@@ -1,0 +1,8 @@
+docx==0.2.4
+gspread==5.0.0
+gspread_formatting==1.0.5
+numpy==1.21.4
+protobuf==3.19.4
+PyQt5==5.15.6
+python_docx==0.8.11
+qt_material==2.8.13

@@ -8,6 +8,7 @@ import random
 import numpy as np
 import winsound
 import sys
+import os
 
 
 from qt_material import apply_stylesheet
@@ -34,6 +35,13 @@ teamsLOL = 0
 teamsCS = 0
 teamsValorant = 0
 roomsList = []
+game_number = 1
+team_number = 1
+
+
+def resource_path(relative_path):
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
 
 
 # set cell color in multiple cells
@@ -65,11 +73,11 @@ def setColor(worksheet, color, rowStart, columnStart, rowEnd, columnEnd):
         })
 
 
-#remove players from the list if the lack: timestamp, name, nickname or type of game they play
+#remove players from the list if name or nickname is missing
 def removeEmpty(players):
     i = 0
     while i < len(players):
-        for j in range(3):
+        for j in range(1, 2):
             if players[i][j] == "":
                 del players[i]
                 i = i - 1
@@ -93,27 +101,28 @@ def removeDuplicate(players):
 #divide players between LOL and CS
 def dividePlayers(players):
     for player in players:
-        if player[3] == "LoL":
+        if "lol" in player[3].lower() or "league of legends" in player[3].lower():
             if useName:
                 playersLOL.append(player[1])
             else:
                 playersLOL.append(player[2])
-        elif player[3] == "CS:GO":
+        elif "cs:go" in player[3].lower() or "csgo" in player[3].lower() or "counter-strike" in player[3].lower() \
+                or "counter strike" in player[3].lower():
             if useName:
                 playersCS.append(player[1])
             else:
                 playersCS.append(player[2])
-        elif player[3] == "Valorant":
+        elif "valorant" in player[3].lower():
             if useName:
                 playersValorant.append(player[1])
             else:
-                playersValorant.append(players[2])
-        if player[4] == "Mortal Kombat":
+                playersValorant.append(player[2])
+        if "mortal kombat" in player[4].lower() or "mk" in player[4].lower():
             if useName:
                 playersMK.append(player[1])
             else:
                 playersMK.append(player[2])
-        elif player[4] == "FIFA":
+        elif "fifa" in player[4].lower():
             if useName:
                 playersFIFA.append(player[1])
             else:
@@ -139,9 +148,9 @@ def removeExcessivePlayers(players, game):
 
 
 #Find number of the previous game
-def findPreviousGame(worksheet):
+def findPrevious(worksheet, text):
     previousGameNumber = 0
-    query = re.compile("GAME .*")
+    query = re.compile(text + " .*")
     cells = worksheet.findall(query)
     time.sleep(1)
     if len(cells) != 0:
@@ -174,6 +183,7 @@ def findAvailableRow(worksheet):
 
 
 def generateGame(players, teamNumbers, game):
+    global game_number, team_number
     random.shuffle(players)
     if game == "LOL":
         sheet = sheet2
@@ -188,9 +198,10 @@ def generateGame(players, teamNumbers, game):
     for i in range(0, teamNumbers):
         array = np.empty(shape=[0, 1])
         if i % 2 == 0:
-            previousGame = findPreviousGame(sheet)
-            array = np.append(array, [["GAME " + str(previousGame + 1)]], axis=0)
-        array = np.append(array, [["TEAM " + str(i + 1)]], axis=0)
+            array = np.append(array, [["GAME " + str(game_number)]], axis=0)
+            game_number += 1
+        array = np.append(array, [["TEAM " + str(team_number)]], axis=0)
+        team_number += 1
 
         j = i * 5
         while j < i * 5 + 5:
@@ -214,10 +225,11 @@ def generateGame(players, teamNumbers, game):
             setColor(sheet, "blue", j - 2 + i + i / 2, column, j + 2 + i + i / 2, column)
         time.sleep(1)
         if i % 2 != 0:
-            print(game, "game", (previousGame+1), "generated successfully")
+            print(game, "game", game_number-1, "generated successfully")
 
 
 def generateSecondaryGame(players, game):
+    global game_number
     random.shuffle(players)
     if game == "MK":
         sheet = sheet5
@@ -229,8 +241,8 @@ def generateSecondaryGame(players, game):
 
     for i in range(0, int(len(players)/2)):
         array = np.empty(shape=[0, 1])
-        previousGame = findPreviousGame(sheet)
-        array = np.append(array, [["GAME " + str(previousGame + 1)]], axis=0)
+        array = np.append(array, [["GAME " + str(game_number)]], axis=0)
+        game_number += 1
         array = np.append(array, [[players[2*i]]], axis=0)
         array = np.append(array, [[players[2*i+1]]], axis=0)
 
@@ -242,7 +254,7 @@ def generateSecondaryGame(players, game):
         setColor(sheet, "red", 2*i+i+2, column, 2*i+i+3, column)
         time.sleep(1)
 
-        print(game, "game", (previousGame+1), "generated successfully")
+        print(game, "game", game_number-1, "generated successfully")
 
 
 def openSpreadsheet():
@@ -250,7 +262,9 @@ def openSpreadsheet():
     scope = ['https://www.googleapis.com/auth/spreadsheets',
              'https://www.googleapis.com/auth/drive.file',
              "https://www.googleapis.com/auth/drive"]
-    creds = Credentials.from_service_account_file('genroom-2654a6209a4a.json', scopes=scope)
+    #creds = Credentials.from_service_account_file('genroom-2654a6209a4a.json', scopes=scope)
+    #creds = Credentials.from_service_account_file('rage-quit-gaming-539c26e7038f.json', scopes=scope)
+    creds = Credentials.from_service_account_file('rqgaming-automation-c71eba04f7ab.json', scopes=scope)
     client = gspread.authorize(creds)
 
     spreadsheet = client.open("team generator")
@@ -366,7 +380,7 @@ class Ui_mainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(10)
         self.soundCheck.setFont(font)
-        self.soundCheck.setChecked(True)
+        self.soundCheck.setChecked(False)
         self.soundCheck.setObjectName("soundCheck")
         self.gamePlayers1 = QtWidgets.QLabel(self.centralwidget)
         self.gamePlayers1.setGeometry(QtCore.QRect(500, 40, 121, 41))
@@ -449,7 +463,7 @@ class Ui_mainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(10)
         self.gameCheck3.setFont(font)
-        self.gameCheck3.setChecked(False)
+        self.gameCheck3.setChecked(True)
         self.gameCheck3.setObjectName("gameCheck3")
         self.label3 = QtWidgets.QLabel(self.centralwidget)
         self.label3.setGeometry(QtCore.QRect(320, 160, 71, 41))
@@ -463,7 +477,7 @@ class Ui_mainWindow(object):
         font.setPointSize(10)
         self.gameSpin3.setFont(font)
         self.gameSpin3.setMaximum(10)
-        self.gameSpin3.setProperty("value", 0)
+        self.gameSpin3.setProperty("value", 3)
         self.gameSpin3.setObjectName("gameSpin3")
         self.gamePlayers3 = QtWidgets.QLabel(self.centralwidget)
         self.gamePlayers3.setGeometry(QtCore.QRect(500, 160, 121, 41))
@@ -531,12 +545,12 @@ class Ui_mainWindow(object):
 
         # play sound
         if self.soundCheck.isChecked():
-            winsound.PlaySound('sounds/losowanko zapraszam.wav', winsound.SND_ASYNC)
+            winsound.PlaySound(resource_path('sounds/losowanko zapraszam.wav'), winsound.SND_ASYNC)
 
         # flag to use either names or nicknames
         useName = self.playersRadio2.isChecked()
 
-        # 0 - timestamp  1 - name  2 - nickname  3 - main game  4 - secondary game
+        # 0 - timestamp  1 - full name  2 - nickname  3 - main game  4 - side game
         playersList = sheet1.get_all_values()[1:]
         time.sleep(1)
 
@@ -554,12 +568,10 @@ class Ui_mainWindow(object):
         playersFIFA = []
         dividePlayers(playersList)
 
-        #print("Players for LoL: ", len(playersLOL))
-        #print("Players for CS: ", len(playersCS))
 
         removeExcessivePlayers(playersLOL, "LOL")
         removeExcessivePlayers(playersCS, "CS")
-        removeExcessivePlayers(playersCS, "Valorant")
+        removeExcessivePlayers(playersValorant, "Valorant")
         removeExcessivePlayers(playersMK, "MK")
         removeExcessivePlayers(playersFIFA, "FIFA")
 
@@ -599,9 +611,8 @@ class Ui_mainWindow(object):
         app.processEvents()
 
     def generate(self):
+        global game_number, team_number
 
-        #just to make sure
-        self.clearWorksheets()
         self.loadPlayers()
 
         self.statusLabel.setText("Status: Generating games...")
@@ -610,10 +621,14 @@ class Ui_mainWindow(object):
 
         # play sound
         if self.soundCheck.isChecked():
-            winsound.PlaySound('sounds/losu losu losu.wav', winsound.SND_ASYNC)
+            winsound.PlaySound(resource_path('sounds/losu losu losu.wav'), winsound.SND_ASYNC)
 
         #LOL
+        game_number = 1
+        team_number = 1
         if self.gameCheck1.isChecked() and len(playersLOL) >= 10:
+            spreadsheet.get_worksheet(1).clear()
+            setColor(sheet2, "white", 1, 1, 40, 26)
             for i in range(self.gameSpin1.value()):
                 generateGame(playersLOL, teamsLOL, "LOL")
 
@@ -623,37 +638,53 @@ class Ui_mainWindow(object):
             winsound.PlaySound('sounds/losu losu losu.wav', winsound.SND_ASYNC)
 
         #CS
+        game_number = 1
+        team_number = 1
         if self.gameCheck2.isChecked() and len(playersCS) >= 10:
+            spreadsheet.get_worksheet(2).clear()
+            setColor(sheet3, "white", 1, 1, 40, 26)
             for i in range(self.gameSpin2.value()):
                 generateGame(playersCS, teamsCS, "CS")
 
         # play sound
         if self.soundCheck.isChecked():
             winsound.PlaySound(None, winsound.SND_PURGE)
-            winsound.PlaySound('sounds/losu losu losu.wav', winsound.SND_ASYNC)
+            winsound.PlaySound(resource_path('sounds/losu losu losu.wav'), winsound.SND_ASYNC)
 
-        # CS
+        # Valorant
+        game_number = 1
+        team_number = 1
         if self.gameCheck3.isChecked() and len(playersValorant) >= 10:
+            spreadsheet.get_worksheet(3).clear()
+            setColor(sheet4, "white", 1, 1, 40, 26)
             for i in range(self.gameSpin3.value()):
                 generateGame(playersValorant, teamsValorant, "Valorant")
 
         # play sound
         if self.soundCheck.isChecked():
             winsound.PlaySound(None, winsound.SND_PURGE)
-            winsound.PlaySound('sounds/losu losu losu.wav', winsound.SND_ASYNC)
+            winsound.PlaySound(resource_path('sounds/losu losu losu.wav'), winsound.SND_ASYNC)
 
         #Mortal Kombat
+        game_number = 1
+        team_number = 1
         if self.gameCheck4.isChecked() and len(playersMK) >= 8:
+            spreadsheet.get_worksheet(4).clear()
+            setColor(sheet5, "white", 1, 1, 40, 26)
             for i in range(self.gameSpin4.value()):
                 generateSecondaryGame(playersMK, "MK")
 
         # play sound
         if self.soundCheck.isChecked():
             winsound.PlaySound(None, winsound.SND_PURGE)
-            winsound.PlaySound('sounds/losu losu losu.wav', winsound.SND_ASYNC)
+            winsound.PlaySound(resource_path('sounds/losu losu losu.wav'), winsound.SND_ASYNC)
 
         #FIFA
+        game_number = 1
+        team_number = 1
         if self.gameCheck5.isChecked() and len(playersFIFA) >= 8:
+            spreadsheet.get_worksheet(5).clear()
+            setColor(sheet6, "white", 1, 1, 40, 26)
             for i in range(self.gameSpin5.value()):
                 generateSecondaryGame(playersFIFA, "FIFA")
 
@@ -664,7 +695,7 @@ class Ui_mainWindow(object):
         # play sound
         if self.soundCheck.isChecked():
             winsound.PlaySound(None, winsound.SND_PURGE)
-            winsound.PlaySound('sounds/oj trudne trudne.wav', winsound.SND_ASYNC)
+            winsound.PlaySound(resource_path('sounds/oj trudne trudne.wav'), winsound.SND_ASYNC)
             time.sleep(3)
             winsound.PlaySound(None, winsound.SND_PURGE)
 
@@ -864,7 +895,7 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
 
     # icon
-    app_icon = QIcon("images/icon.png")
+    app_icon = QIcon(resource_path("images/icon.png"))
     app.setWindowIcon(app_icon)
 
     # styles
